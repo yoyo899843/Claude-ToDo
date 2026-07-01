@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% if mode == 'register' %}註冊{% else %}登入{% endif %} — Claude Todo</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='app.css') }}" />
+  </head>
+  <body class="auth-body">
+    <div class="auth-wrap">
+      <div class="card auth-card">
+        <h1 class="auth-title">Claude Todo</h1>
+
+        {% if error %}
+        <div class="auth-error">{{ error }}</div>
+        {% endif %}
+
+        {% if mode == 'register' %}
+        <form method="post" action="/register">
+          <label for="username">帳號</label>
+          <input id="username" name="username" required maxlength="100" autocomplete="username" placeholder="your_name" />
+          <label for="password">密碼</label>
+          <input id="password" name="password" type="password" required autocomplete="new-password" placeholder="••••••••" />
+          <button class="primary" type="submit">建立帳號</button>
+        </form>
+        <p class="auth-switch">已有帳號？<a href="/login">登入</a></p>
+        {% else %}
+        <form method="post" action="/login">
+          <label for="username">帳號</label>
+          <input id="username" name="username" required maxlength="100" autocomplete="username" placeholder="your_name" />
+          <label for="password">密碼</label>
+          <input id="password" name="password" type="password" required autocomplete="current-password" placeholder="••••••••" />
+          <button class="primary" type="submit">登入</button>
+        </form>
+        <p class="auth-switch">還沒有帳號？<a href="/register">註冊</a></p>
+        {% endif %}
+      </div>
+    </div>
+  </body>
+</html>

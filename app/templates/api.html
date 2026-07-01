@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}API — Claude Todo{% endblock %}
+
+{% block content %}
+  <div class="shell">
+    <div class="card panel api-page">
+      <h1 class="api-heading">API Endpoints</h1>
+      <p class="api-base">Base URL: <code>/api/v1/todos</code></p>
+
+      <div class="api-auth-note">
+        <strong>驗證方式：</strong> 每個請求需帶上 <code>Authorization: Bearer &lt;token&gt;</code> header。
+        Token 可在 <a href="/profile">個人設定頁</a> 建立。
+      </div>
+
+      <details class="endpoint" open>
+        <summary class="endpoint-head">
+          <span class="method get">GET</span>
+          <code class="endpoint-path">/api/v1/todos</code>
+          <span class="endpoint-desc">列出所有 todo，可用 query 篩選</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Request</div>
+            <pre>GET /api/v1/todos?completed=false&q=design HTTP/1.1
+Authorization: Bearer &lt;token&gt;</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  "items": [
+    {
+      "id": 1,
+      "title": "更新首頁設計稿",
+      "description": "重新排版 hero section",
+      "completed": false,
+      "created_at": "2026-06-30T19:41:47.703801Z",
+      "updated_at": "2026-06-30T19:41:47.703801Z"
+    }
+  ],
+  "total": 1
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method post">POST</span>
+          <code class="endpoint-path">/api/v1/todos</code>
+          <span class="endpoint-desc">建立一筆 todo</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Request body</div>
+            <pre>{
+  "title": "寫 API 文件",
+  "description": "補齊所有 endpoint 的範例"
+}</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  "id": 2,
+  "title": "寫 API 文件",
+  "description": "補齊所有 endpoint 的範例",
+  "completed": false,
+  "created_at": "2026-06-30T19:43:00.000000Z",
+  "updated_at": "2026-06-30T19:43:00.000000Z"
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method get">GET</span>
+          <code class="endpoint-path">/api/v1/todos/{id}</code>
+          <span class="endpoint-desc">取得單筆 todo</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  "id": 1,
+  "title": "更新首頁設計稿",
+  "description": "重新排版 hero section",
+  "completed": false,
+  "created_at": "2026-06-30T19:41:47.703801Z",
+  "updated_at": "2026-06-30T19:41:47.703801Z"
+}</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 404</div>
+            <pre>{ "detail": "Todo not found" }</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method patch">PATCH</span>
+          <code class="endpoint-path">/api/v1/todos/{id}</code>
+          <span class="endpoint-desc">更新標題 / 描述 / 完成狀態（欄位皆為可選）</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Request body</div>
+            <pre>{
+  "completed": true
+}</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  "id": 1,
+  "title": "更新首頁設計稿",
+  "description": "重新排版 hero section",
+  "completed": true,
+  "created_at": "2026-06-30T19:41:47.703801Z",
+  "updated_at": "2026-06-30T19:50:12.000000Z"
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method post">POST</span>
+          <code class="endpoint-path">/api/v1/todos/{id}/toggle</code>
+          <span class="endpoint-desc">切換完成狀態</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  "id": 1,
+  "title": "更新首頁設計稿",
+  "description": "重新排版 hero section",
+  "completed": true,
+  "created_at": "2026-06-30T19:41:47.703801Z",
+  "updated_at": "2026-06-30T19:51:00.000000Z"
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method delete">DELETE</span>
+          <code class="endpoint-path">/api/v1/todos/{id}</code>
+          <span class="endpoint-desc">刪除一筆 todo</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Response</div>
+            <pre>204 No Content</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method get">GET</span>
+          <code class="endpoint-path">/healthz</code>
+          <span class="endpoint-desc">健康檢查，免驗證</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>{ "status": "ok" }</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method get">GET</span>
+          <code class="endpoint-path">/openapi.json</code>
+          <span class="endpoint-desc">OpenAPI schema</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Response</div>
+            <pre>完整 OpenAPI 3.x JSON schema</pre>
+          </div>
+        </div>
+      </details>
+
+    </div>
+  </div>
+{% endblock %}

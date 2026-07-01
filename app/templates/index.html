@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Todos — Claude Todo{% endblock %}
+
+{% block content %}
+  <div class="shell">
+    <section class="layout">
+      <div class="card panel">
+        <h2 class="section-title">Add todo</h2>
+        <form id="todo-form">
+          <label for="title">Title</label>
+          <input id="title" name="title" required maxlength="200" placeholder="Write a release note" />
+          <label for="description">Description</label>
+          <textarea id="description" name="description" placeholder="Optional details"></textarea>
+          <label for="deadline">Deadline</label>
+          <input id="deadline" name="deadline" type="datetime-local" step="3600" />
+          <button class="primary" type="submit">Create todo</button>
+        </form>
+        <div class="status" id="form-status"></div>
+      </div>
+
+      <div class="card panel">
+        <div class="toolbar">
+          <button class="ghost" type="button" data-filter="all">All</button>
+          <button class="ghost" type="button" data-filter="active">Active</button>
+          <button class="ghost" type="button" data-filter="done">Completed</button>
+        </div>
+        <h2 class="section-title">Todo list</h2>
+        <div class="todo-list" id="todo-list"></div>
+        <div class="status" id="list-status"></div>
+      </div>
+    </section>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal-card" id="modal-card" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ request.url_for('static', path='app.js') }}"></script>
+{% endblock %}

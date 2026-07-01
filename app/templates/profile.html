@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}個人設定 — Claude Todo{% endblock %}
+
+{% block content %}
+<div class="shell">
+
+  {% if flash_token %}
+  <div class="card flash-token">
+    <div class="flash-label">新 API Token（只顯示一次，請立即複製）</div>
+    <code class="token-value" id="flash-token-value">{{ flash_token }}</code>
+    <button class="ghost copy-btn" onclick="copyToken()">複製</button>
+  </div>
+  {% endif %}
+
+  <div class="profile-grid">
+
+    <div class="card panel">
+      <h2 class="section-title">帳號資訊</h2>
+      <div class="profile-info">
+        <div class="profile-avatar">{{ user.username[0].upper() }}</div>
+        <div>
+          <div class="profile-username">{{ user.username }}</div>
+          <div class="profile-since">加入於 {{ user.created_at.strftime('%Y-%m-%d') }}</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card panel">
+      <h2 class="section-title">建立 API Token</h2>
+      <form method="post" action="/profile/tokens">
+        <label for="token-name">Token 名稱</label>
+        <input id="token-name" name="name" required maxlength="100" placeholder="e.g. My Script" />
+        <button class="primary" type="submit">建立 Token</button>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="card panel token-list-card">
+    <h2 class="section-title">API Tokens</h2>
+    {% if tokens %}
+    <div class="token-list">
+      {% for token in tokens %}
+      <div class="token-row">
+        <div class="token-info">
+          <span class="token-name">{{ token.name }}</span>
+          <span class="token-date">{{ token.created_at.strftime('%Y-%m-%d %H:%M') }}</span>
+        </div>
+        <form method="post" action="/profile/tokens/{{ token.id }}/delete">
+          <button class="danger token-del-btn" type="submit">刪除</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="status">還沒有 Token，使用上方表單建立第一個。</p>
+    {% endif %}
+  </div>
+
+</div>
+
+<script>
+function copyToken() {
+  const val = document.getElementById("flash-token-value").textContent;
+  navigator.clipboard.writeText(val);
+}
+</script>
+{% endblock %}

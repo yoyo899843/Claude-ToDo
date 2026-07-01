@@ -1,0 +1,31 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: todoapp
+      POSTGRES_USER: yoyo899843
+      POSTGRES_PASSWORD: yoYO951105
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U yoyo899843 -d todoapp"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      DATABASE_URL: "postgresql+psycopg://yoyo899843:yoYO951105@db:5432/todoapp"
+      APP_NAME: "Claude Todo"
+      SECRET_KEY: "yoyo_top_secret_key"
+    volumes:
+      - ./app:/app/app
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  postgres_data:

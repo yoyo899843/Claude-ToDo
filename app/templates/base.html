@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{% block title %}Claude Todo{% endblock %}</title>
+    <link rel="icon" href="data:,">
+    <link rel="stylesheet" href="{{ request.url_for('static', path='app.css') }}" />
+  </head>
+  <body>
+    {% if user is defined and user %}
+    <header class="site-header">
+      <nav class="site-nav">
+        <a class="nav-brand" href="/">Claude Todo</a>
+        <div class="nav-links">
+          <a href="/" class="nav-link{% if active_page == 'home' %} active{% endif %}">Todos</a>
+          <a href="/api-docs" class="nav-link{% if active_page == 'api' %} active{% endif %}">API</a>
+          <a href="/profile" class="nav-link{% if active_page == 'profile' %} active{% endif %}">{{ user.username }}</a>
+        </div>
+        <form action="/logout" method="post" style="margin:0">
+          <button class="nav-logout" type="submit">登出</button>
+        </form>
+      </nav>
+    </header>
+    {% endif %}
+    {% block content %}{% endblock %}
+    {% block scripts %}{% endblock %}
+  </body>
+</html>

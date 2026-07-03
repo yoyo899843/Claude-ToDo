@@ -1,0 +1,70 @@
+{% extends "base.html" %}
+
+{% block title %}Claude 整合 — Claude Todo{% endblock %}
+
+{% block content %}
+  <div class="shell">
+    <div class="cl-page">
+
+      <div class="cl-card card">
+        <div class="cl-top">
+          <h1 class="cl-title">Claude 整合</h1>
+          <div class="cl-token-group">
+            <label class="cl-label" for="token-input">API Token</label>
+            <div class="cl-token-wrap">
+              <input id="token-input" class="cl-token-input" type="password"
+                placeholder="貼上 token…" autocomplete="off" oninput="refreshPrompt()" />
+              <button class="cl-eye" type="button" onclick="toggleTokenVis()" aria-label="顯示/隱藏 token">👁</button>
+            </div>
+            <a href="/profile" class="cl-profile-link">建立 Token →</a>
+          </div>
+        </div>
+
+        <div class="cl-prompt-head">
+          <span class="cl-section-label">System Prompt</span>
+          <button class="ghost cl-copy-btn" id="copy-btn" onclick="copyPrompt()">複製</button>
+        </div>
+        <pre class="cl-prompt" id="prompt-text"></pre>
+      </div>
+
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+const BASE_URL = "{{ request.base_url }}".replace(/\/$/, "");
+
+function buildPrompt(token) {
+  const t = token || "[YOUR_TOKEN]";
+  return `你是我的個人助理，可以透過 HTTP API 操作我的 Todo 清單。
+
+開始前請先用 WebFetch 讀取以下網址，取得完整 API 說明與 Gmail 整理原則：
+${BASE_URL}/api-docs
+
+## 認證
+所有 /api/v1/ 請求附上 header：
+  Authorization: Bearer ${t}
+  Content-Type: application/json`;
+}
+
+function refreshPrompt() {
+  document.getElementById("prompt-text").textContent =
+    buildPrompt(document.getElementById("token-input").value.trim());
+}
+
+function toggleTokenVis() {
+  const el = document.getElementById("token-input");
+  el.type = el.type === "password" ? "text" : "password";
+}
+
+async function copyPrompt() {
+  await navigator.clipboard.writeText(document.getElementById("prompt-text").textContent);
+  const btn = document.getElementById("copy-btn");
+  btn.textContent = "已複製！";
+  setTimeout(() => { btn.textContent = "複製"; }, 2000);
+}
+
+refreshPrompt();
+</script>
+{% endblock %}

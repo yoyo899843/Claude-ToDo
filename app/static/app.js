@@ -71,7 +71,7 @@ function toDatetimeLocal(value) {
   if (!value) return "";
   const d = new Date(value);
   const pad = (n) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:00`;
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 function openModal(todo) {
@@ -92,7 +92,7 @@ function openModal(todo) {
       </div>
       <div class="modal-field">
         <label class="modal-label" for="modal-deadline">Deadline</label>
-        <input class="modal-input" id="modal-deadline" type="datetime-local" step="3600" value="${toDatetimeLocal(todo.deadline)}" />
+        <input class="modal-input" id="modal-deadline" type="datetime-local" step="600" value="${toDatetimeLocal(todo.deadline)}" />
       </div>
       <div class="modal-meta">
         <span>Created: ${formatDate(todo.created_at)}</span>
@@ -161,7 +161,12 @@ async function loadTodos() {
   todosEl.replaceChildren(...payload.items.map(todoRow));
 
   if (!payload.items.length) {
-    setStatus(listStatus, "No todos yet. Add one to get started.");
+    const emptyMsg = {
+      all:    "No todos yet. Add one to get started.",
+      active: "No active todos.",
+      done:   "No completed todos.",
+    }[currentFilter];
+    setStatus(listStatus, emptyMsg);
     return;
   }
   setStatus(listStatus, `Showing ${payload.total} todo(s).`);

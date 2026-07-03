@@ -16,7 +16,7 @@ services:
   web:
     build: .
     ports:
-      - "8000:8000"
+      - "8006:8000"
     environment:
       DATABASE_URL: "postgresql+psycopg://yoyo899843:yoYO951105@db:5432/todoapp"
       APP_NAME: "Claude Todo"

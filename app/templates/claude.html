@@ -5,8 +5,6 @@
 {% block content %}
   <div class="shell">
     <div class="cl-page">
-
-      <!-- System Prompt -->
       <div class="cl-card card">
         <div class="cl-top">
           <h1 class="cl-title">Claude 整合</h1>
@@ -26,64 +24,6 @@
         </div>
         <pre class="cl-prompt" id="prompt-text"></pre>
       </div>
-
-      <!-- 整理原則 -->
-      <div class="cl-card card cl-principles">
-        <h2 class="cl-principles-title">整理原則</h2>
-        <p class="cl-principles-desc">以下是 Claude 讀取 <code>/claude.md</code> 後會遵守的規則，你可以直接在這裡編輯邏輯再讓開發者更新。</p>
-
-        <div class="cl-rule-section">
-          <div class="cl-rule-head">Gmail 整理流程</div>
-          <div class="cl-rule-list">
-            <div class="cl-rule-item">
-              <span class="cl-rule-num">1</span>
-              <div>
-                <strong>先取清單，不讀內文</strong>
-                <p>用 Gmail connector 列出未讀信件（subject、from、date），看 subject 判斷分類，省 token。</p>
-              </div>
-            </div>
-            <div class="cl-rule-item">
-              <span class="cl-rule-num">2</span>
-              <div>
-                <strong>按類型處理</strong>
-                <div class="cl-rule-tags">
-                  <span class="cl-tag cl-tag-archive">促銷 / 廣告 → 封存</span>
-                  <span class="cl-tag cl-tag-todo">需行動（付款、簽署、確認）→ 讀信 + 建 Todo + 連結放 description</span>
-                  <span class="cl-tag cl-tag-meet">會議 / 活動 → 建 Todo，deadline 設活動時間，連結放 description</span>
-                  <span class="cl-tag cl-tag-read">一般通知 → 標已讀 + 封存</span>
-                </div>
-              </div>
-            </div>
-            <div class="cl-rule-item">
-              <span class="cl-rule-num">3</span>
-              <div>
-                <strong>確認後才執行</strong>
-                <p>先列出「打算怎麼處理」讓使用者確認，再執行封存或建 Todo，避免誤操作。</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <div class="cl-rule-section">
-          <div class="cl-rule-head">建立 Todo 規則</div>
-          <div class="cl-rule-list">
-            <div class="cl-rule-item">
-              <span class="cl-rule-dot"></span>
-              <p>deadline 一律使用 UTC ISO 8601 格式，例如 <code>2026-07-10T10:00:00Z</code></p>
-            </div>
-            <div class="cl-rule-item">
-              <span class="cl-rule-dot"></span>
-              <p>重要連結、摘要放在 <code>description</code>，title 保持簡短</p>
-            </div>
-            <div class="cl-rule-item">
-              <span class="cl-rule-dot"></span>
-              <p>除非使用者明確要求，否則不刪除 Todo</p>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
     </div>
   </div>
 {% endblock %}
@@ -94,15 +34,39 @@ const BASE_URL = "{{ request.base_url }}".replace(/\/$/, "");
 
 function buildPrompt(token) {
   const t = token || "[YOUR_TOKEN]";
-  return `你是我的個人助理，可以透過 HTTP API 操作我的 Todo 清單。
+  return `你是我的個人助理，負責幫我整理 Gmail 並管理 Todo 清單。
 
-開始前請先用 WebFetch 讀取以下網址，取得完整 API 說明與整理原則：
-${BASE_URL}/claude.md
-
-## 認證
+## API 設定
+Base URL: ${BASE_URL}
 所有 /api/v1/ 請求附上 header：
   Authorization: Bearer ${t}
-  Content-Type: application/json`;
+  Content-Type: application/json
+
+## Todo API
+
+GET  /api/v1/todos               列出 todos（?completed=true/false、?q=關鍵字）
+POST /api/v1/todos               建立 todo
+PATCH /api/v1/todos/{id}         更新 todo（title、description、completed、deadline 皆選填）
+DELETE /api/v1/todos/{id}        刪除 todo（回傳 204）
+
+建立 / 更新 body 範例：
+{
+  "title": "任務標題",
+  "description": "詳細說明或連結",
+  "deadline": "2026-07-10T10:00:00Z"
+}
+
+## Gmail 整理原則
+
+1. 先用 Gmail connector 取未讀清單（subject + from + date），不要一開始就讀內文
+2. 看 subject 判斷類型再決定是否讀內文：
+   - 促銷 / 廣告         → 直接封存，不建 Todo
+   - 需行動（付款、簽署、確認、回覆）→ 讀信取得連結 → 建 Todo，description 放摘要和連結
+   - 會議 / 活動         → 建 Todo，deadline 設為活動時間，description 放 Meet/Zoom 連結
+   - 一般通知            → 標已讀 + 封存
+3. 執行前先列出「打算怎麼處理」，等我確認後再動作
+4. deadline 一律 UTC ISO 8601（例：2026-07-10T10:00:00Z）
+5. 除非我明確要求，否則不刪除 Todo`;
 }
 
 function refreshPrompt() {

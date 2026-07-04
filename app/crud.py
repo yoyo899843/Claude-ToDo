@@ -2,7 +2,7 @@ import secrets
 from datetime import datetime
 
 import bcrypt
-from sqlalchemy import select
+from sqlalchemy import and_, or_, select
 from sqlalchemy.orm import Session
 
 from app.models import APIToken, Event, Todo, User
@@ -125,6 +125,21 @@ def toggle_todo(db: Session, todo: Todo) -> Todo:
 
 # ── events ────────────────────────────────────────────────────────────────────
 
+def _apply_event_range_filter(statement, from_dt, to_dt):
+    # Return events that overlap [from_dt, to_dt]:
+    # start_at <= to_dt  AND  (end_at >= from_dt  OR  (no end_at AND start_at >= from_dt))
+    if to_dt is not None:
+        statement = statement.where(Event.start_at <= to_dt)
+    if from_dt is not None:
+        statement = statement.where(
+            or_(
+                Event.end_at >= from_dt,
+                and_(Event.end_at.is_(None), Event.start_at >= from_dt),
+            )
+        )
+    return statement
+
+
 def list_events(
     db: Session,
     user_id: int,
@@ -132,11 +147,16 @@ def list_events(
     to_dt: datetime | None = None,
 ) -> list[Event]:
     statement = select(Event).where(Event.user_id == user_id).order_by(Event.start_at.asc())
-    if from_dt is not None:
-        statement = statement.where(Event.start_at >= from_dt)
-    if to_dt is not None:
-        statement = statement.where(Event.start_at <= to_dt)
-    return list(db.scalars(statement).all())
+    return list(db.scalars(_apply_event_range_filter(statement, from_dt, to_dt)).all())
+
+
+def list_all_events(
+    db: Session,
+    from_dt: datetime | None = None,
+    to_dt: datetime | None = None,
+) -> list[Event]:
+    statement = select(Event).order_by(Event.start_at.asc())
+    return list(db.scalars(_apply_event_range_filter(statement, from_dt, to_dt)).all())
 
 
 def get_event(db: Session, event_id: int) -> Event | None:

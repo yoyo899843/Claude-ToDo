@@ -9,21 +9,40 @@
   </head>
   <body>
     {% if user is defined and user %}
-    <header class="site-header">
+    <header class="site-header" id="site-header">
       <nav class="site-nav">
         <a class="nav-brand" href="/">Claude Todo</a>
-        <div class="nav-links">
+        <div class="nav-links" id="nav-links">
           <a href="/" class="nav-link{% if active_page == 'home' %} active{% endif %}">Todos</a>
           <a href="/calendar" class="nav-link{% if active_page == 'calendar' %} active{% endif %}">Calendar</a>
           <a href="/api-docs" class="nav-link{% if active_page == 'api' %} active{% endif %}">API</a>
           <a href="/claude" class="nav-link{% if active_page == 'claude' %} active{% endif %}">Claude</a>
           <a href="/profile" class="nav-link{% if active_page == 'profile' %} active{% endif %}">{{ user.username }}</a>
+          <form action="/logout" method="post" class="nav-logout-mobile">
+            <button class="nav-logout" type="submit">登出</button>
+          </form>
         </div>
-        <form action="/logout" method="post" style="margin:0">
+        <form action="/logout" method="post" class="nav-logout-desktop" style="margin:0">
           <button class="nav-logout" type="submit">登出</button>
         </form>
+        <button class="nav-hamburger" id="nav-hamburger" aria-label="選單">&#9776;</button>
       </nav>
     </header>
+    <script>
+      document.getElementById("nav-hamburger").addEventListener("click", function() {
+        document.getElementById("site-header").classList.toggle("nav-open");
+      });
+      document.addEventListener("click", function(e) {
+        if (!document.getElementById("site-header").contains(e.target)) {
+          document.getElementById("site-header").classList.remove("nav-open");
+        }
+      });
+      document.querySelectorAll("#nav-links .nav-link").forEach(function(a) {
+        a.addEventListener("click", function() {
+          document.getElementById("site-header").classList.remove("nav-open");
+        });
+      });
+    </script>
     {% endif %}
     {% block content %}{% endblock %}
     {% block scripts %}{% endblock %}

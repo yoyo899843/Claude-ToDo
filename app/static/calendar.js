@@ -1,9 +1,10 @@
-const backdrop   = document.querySelector("#modal-backdrop");
-const modalBody  = document.querySelector("#modal-body");
-const modalClose = document.querySelector("#modal-close");
-const calGrid    = document.querySelector("#cal-grid");
-const calStatus  = document.querySelector("#cal-status");
-const monthLabel = document.querySelector("#month-label");
+const backdrop    = document.querySelector("#modal-backdrop");
+const modalBody   = document.querySelector("#modal-body");
+const modalClose  = document.querySelector("#modal-close");
+const calGrid     = document.querySelector("#cal-grid");
+const calListView = document.querySelector("#cal-list-view");
+const calStatus   = document.querySelector("#cal-status");
+const monthLabel  = document.querySelector("#month-label");
 
 const now = new Date();
 let viewYear  = now.getFullYear();
@@ -55,6 +56,30 @@ function closeModal() { backdrop.hidden = true; }
 modalClose.addEventListener("click", closeModal);
 backdrop.addEventListener("click", (e) => { if (e.target === backdrop) closeModal(); });
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
+
+// ── Event detail modal (read-only) ────────────────────────────────────────────
+
+function openEventDetailModal(ev) {
+  const startD = new Date(ev.start_at);
+  const endD   = ev.end_at ? new Date(ev.end_at) : null;
+  const fmtDT  = (d) => d.toLocaleString("zh-Hant", { month: "numeric", day: "numeric", weekday: "short", hour: "2-digit", minute: "2-digit" });
+
+  openModal(`
+    <h2 class="modal-title">${escapeHtml(ev.title)}</h2>
+    <div class="ev-detail-row">
+      <span class="ev-detail-label">開始</span>
+      <span>${fmtDT(startD)}</span>
+    </div>
+    ${endD ? `<div class="ev-detail-row">
+      <span class="ev-detail-label">結束</span>
+      <span>${fmtDT(endD)}</span>
+    </div>` : ""}
+    ${ev.description ? `<div class="ev-detail-row ev-detail-desc">
+      <span class="ev-detail-label">說明</span>
+      <span>${escapeHtml(ev.description)}</span>
+    </div>` : ""}
+  `);
+}
 
 // ── Event modal ───────────────────────────────────────────────────────────────
 
@@ -203,24 +228,26 @@ async function loadCalendar() {
                   "July","August","September","October","November","December"];
   monthLabel.textContent = `${MONTHS[viewMonth]} ${viewYear}`;
 
-  const [todosPayload, eventsPayload] = await Promise.all([
-    api(`/api/v1/todos?deadline_from=${encodeURIComponent(from)}&deadline_to=${encodeURIComponent(to)}`),
-    api(`/api/v1/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`),
-  ]);
-
-  // group by local "Y-M-D" key
-  const todosByDate  = {};
-  const eventsByDate = {};
-
-  for (const todo of todosPayload.items) {
-    const d = new Date(todo.deadline);
-    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-    (todosByDate[key] ??= []).push(todo);
+  let eventsPayload;
+  try {
+    eventsPayload = await api(`/api/v1/events?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+  } catch {
+    eventsPayload = await api(`/api/v1/events/public?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
   }
+
+  // Expand multi-day events: each event appears on every day it spans.
+  const eventsByDate = {};
   for (const ev of eventsPayload.items) {
-    const d = new Date(ev.start_at);
-    const key = `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`;
-    (eventsByDate[key] ??= []).push(ev);
+    const startDay = new Date(ev.start_at);
+    startDay.setHours(0, 0, 0, 0);
+    const endDay = ev.end_at ? new Date(ev.end_at) : new Date(startDay);
+    endDay.setHours(0, 0, 0, 0);
+    const cur = new Date(startDay);
+    while (cur <= endDay) {
+      const key = `${cur.getFullYear()}-${cur.getMonth()}-${cur.getDate()}`;
+      (eventsByDate[key] ??= []).push({ ev, isStart: cur.getTime() === startDay.getTime() });
+      cur.setDate(cur.getDate() + 1);
+    }
   }
 
   // remove previous day cells
@@ -241,44 +268,125 @@ async function loadCalendar() {
   for (let day = 1; day <= daysInMonth; day++) {
     const key = `${viewYear}-${viewMonth}-${day}`;
     const isToday = key === todayKey;
-    const todos  = todosByDate[key]  || [];
     const events = eventsByDate[key] || [];
 
     const cell = document.createElement("div");
     cell.className = `cal-cell${isToday ? " cal-today" : ""}`;
-    cell.title = "點擊新增行程";
 
     const dateEl = document.createElement("span");
     dateEl.className = "cal-date";
     dateEl.textContent = day;
     cell.appendChild(dateEl);
 
-    for (const ev of events) {
+    for (const { ev, isStart } of events) {
       const item = document.createElement("div");
       item.className = "cal-item cal-event-item";
-      item.textContent = `${new Date(ev.start_at).toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} ${ev.title}`;
-      item.addEventListener("click", (e) => { e.stopPropagation(); openEventModal(ev); });
+      const timeStr = isStart
+        ? new Date(ev.start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : "→";
+      item.textContent = `${timeStr} ${ev.title}`;
+      item.addEventListener("click", (e) => {
+        e.stopPropagation();
+        CALENDAR_EDITABLE ? openEventModal(ev) : openEventDetailModal(ev);
+      });
       cell.appendChild(item);
     }
 
-    for (const todo of todos) {
-      const item = document.createElement("div");
-      item.className = `cal-item cal-todo-item${todo.completed ? " done" : ""}`;
-      item.textContent = todo.title;
-      item.addEventListener("click", (e) => { e.stopPropagation(); openTodoModal(todo); });
-      cell.appendChild(item);
+    if (CALENDAR_EDITABLE) {
+      cell.title = "點擊新增行程";
+      cell.addEventListener("click", () => {
+        openEventModal(null, new Date(viewYear, viewMonth, day));
+      });
     }
-
-    // click empty area of cell → new event
-    cell.addEventListener("click", () => {
-      openEventModal(null, new Date(viewYear, viewMonth, day));
-    });
 
     calGrid.appendChild(cell);
   }
 
-  const total = todosPayload.total + eventsPayload.total;
-  calStatus.textContent = total ? `${eventsPayload.total} 行程・${todosPayload.total} todo` : "本月無行程與 todo。";
+  renderList(eventsByDate);
+  calStatus.textContent = eventsPayload.total ? `${eventsPayload.total} 個行程` : "本月無行程。";
+}
+
+// ── List view (mobile) ────────────────────────────────────────────────────────
+
+function renderList(eventsByDate) {
+  if (!calListView) return;
+  calListView.innerHTML = "";
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const todayKey = `${now.getFullYear()}-${now.getMonth()}-${now.getDate()}`;
+  let hasAny = false;
+
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = `${viewYear}-${viewMonth}-${day}`;
+    const dayItems = eventsByDate[key];
+    if (!dayItems || !dayItems.length) continue;
+    hasAny = true;
+
+    const isToday = key === todayKey;
+    const dayLabel = new Date(viewYear, viewMonth, day).toLocaleDateString("zh-Hant", {
+      month: "long", day: "numeric", weekday: "short",
+    });
+
+    const group = document.createElement("div");
+    group.className = "cal-list-group";
+
+    const dateEl = document.createElement("div");
+    dateEl.className = `cal-list-date${isToday ? " cal-list-today" : ""}`;
+    dateEl.textContent = isToday ? `今天　${dayLabel}` : dayLabel;
+    group.appendChild(dateEl);
+
+    for (const { ev, isStart } of dayItems) {
+      const row = document.createElement("div");
+      row.className = "cal-list-item";
+
+      const timeEl = document.createElement("div");
+      timeEl.className = "cal-list-time";
+      timeEl.textContent = isStart
+        ? new Date(ev.start_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+        : "→";
+
+      const dot = document.createElement("div");
+      dot.className = "cal-list-dot";
+
+      const info = document.createElement("div");
+      info.className = "cal-list-info";
+
+      const titleEl = document.createElement("div");
+      titleEl.className = "cal-list-title";
+      titleEl.textContent = ev.title;
+      info.appendChild(titleEl);
+
+      if (ev.end_at) {
+        const range = document.createElement("div");
+        range.className = "cal-list-range";
+        const startD = new Date(ev.start_at);
+        const endD   = new Date(ev.end_at);
+        const sameDay = startD.toDateString() === endD.toDateString();
+        if (isStart) {
+          range.textContent = sameDay
+            ? `${startD.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} – ${endD.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`
+            : `${startD.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})} – ${endD.toLocaleDateString("zh-Hant",{month:"numeric",day:"numeric"})} ${endD.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`;
+        } else {
+          range.textContent = `到 ${endD.toLocaleDateString("zh-Hant",{month:"numeric",day:"numeric"})} ${endD.toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"})}`;
+        }
+        info.appendChild(range);
+      }
+
+      row.appendChild(timeEl);
+      row.appendChild(dot);
+      row.appendChild(info);
+      row.addEventListener("click", () => {
+        CALENDAR_EDITABLE ? openEventModal(ev) : openEventDetailModal(ev);
+      });
+      group.appendChild(row);
+    }
+
+    calListView.appendChild(group);
+  }
+
+  if (!hasAny) {
+    calListView.innerHTML = `<p class="cal-list-empty">本月無行程。</p>`;
+  }
 }
 
 // ── Navigation ────────────────────────────────────────────────────────────────

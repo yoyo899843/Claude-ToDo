@@ -31,6 +31,17 @@ def create_event(
     return crud.create_event(db, user_id=user.id, event_in=event_in)
 
 
+# /public must be defined before /{event_id} so the static segment wins over the int param
+@router.get("/public", response_model=EventListResponse)
+def read_events_public(
+    from_dt: datetime | None = Query(default=None, alias="from"),
+    to_dt: datetime | None = Query(default=None, alias="to"),
+    db: Session = Depends(get_db),
+) -> EventListResponse:
+    events = crud.list_all_events(db, from_dt=from_dt, to_dt=to_dt)
+    return EventListResponse(items=events, total=len(events))
+
+
 @router.get("/{event_id}", response_model=EventRead)
 def read_event(
     event_id: int,

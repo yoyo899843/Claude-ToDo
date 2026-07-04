@@ -23,8 +23,17 @@
           <div class="cal-dow">Sun</div>
         </div>
 
+        <div class="cal-list-view" id="cal-list-view"></div>
+
         <div class="cal-status" id="cal-status"></div>
       </div>
+
+      {% if not calendar_editable %}
+      <div class="cal-guest-bar">
+        <span>登入後可新增與編輯行程</span>
+        <a href="/login" class="button primary cal-login-btn">登入</a>
+      </div>
+      {% endif %}
 
     </div>
   </div>
@@ -38,5 +47,6 @@
 {% endblock %}
 
 {% block scripts %}
+  <script>const CALENDAR_EDITABLE = {{ 'true' if calendar_editable else 'false' }};</script>
   <script src="{{ request.url_for('static', path='calendar.js') }}"></script>
 {% endblock %}

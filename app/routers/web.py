@@ -39,9 +39,10 @@ def calendar_page(
     db: Session = Depends(get_db),
     user: models.User | None = Depends(get_current_user_web),
 ) -> HTMLResponse:
-    if not user:
-        return RedirectResponse("/login", status_code=303)
-    return templates.TemplateResponse(request, "calendar.html", {"active_page": "calendar", "user": user})
+    return templates.TemplateResponse(
+        request, "calendar.html",
+        {"active_page": "calendar", "user": user, "calendar_editable": bool(user)},
+    )
 
 
 @router.get("/claude", response_class=HTMLResponse)

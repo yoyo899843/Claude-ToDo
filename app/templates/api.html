@@ -6,12 +6,14 @@
   <div class="shell">
     <div class="card panel api-page">
       <h1 class="api-heading">API Endpoints</h1>
-      <p class="api-base">Base URL: <code>/api/v1/todos</code></p>
+      <p class="api-base">Base URL: <code>/api/v1</code></p>
 
       <div class="api-auth-note">
         <strong>驗證方式：</strong> 每個請求需帶上 <code>Authorization: Bearer &lt;token&gt;</code> header。
         Token 可在 <a href="/profile">個人設定頁</a> 建立。
       </div>
+
+      <h2 class="api-section-title">Todos</h2>
 
       <details class="endpoint" open>
         <summary class="endpoint-head">
@@ -164,6 +166,113 @@ Authorization: Bearer &lt;token&gt;</pre>
           </div>
         </div>
       </details>
+
+      <h2 class="api-section-title">Events（行程）</h2>
+
+      <details class="endpoint" open>
+        <summary class="endpoint-head">
+          <span class="method get">GET</span>
+          <code class="endpoint-path">/api/v1/events</code>
+          <span class="endpoint-desc">列出行程，可用時間範圍篩選</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Request</div>
+            <pre>GET /api/v1/events?from=2026-07-01T00:00:00Z&to=2026-07-31T23:59:59Z HTTP/1.1
+Authorization: Bearer &lt;token&gt;</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>{
+  "items": [
+    {
+      "id": 1,
+      "title": "團隊週會",
+      "description": "每週進度同步",
+      "start_at": "2026-07-07T10:00:00Z",
+      "end_at": "2026-07-07T11:00:00Z",
+      "created_at": "2026-07-04T08:00:00Z",
+      "updated_at": "2026-07-04T08:00:00Z"
+    }
+  ],
+  "total": 1
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method post">POST</span>
+          <code class="endpoint-path">/api/v1/events</code>
+          <span class="endpoint-desc">新增行程</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Request body</div>
+            <pre>{
+  "title": "團隊週會",
+  "description": "每週進度同步",
+  "start_at": "2026-07-07T10:00:00Z",
+  "end_at": "2026-07-07T11:00:00Z"
+}</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 201</div>
+            <pre>{
+  "id": 1,
+  "title": "團隊週會",
+  "description": "每週進度同步",
+  "start_at": "2026-07-07T10:00:00Z",
+  "end_at": "2026-07-07T11:00:00Z",
+  "created_at": "2026-07-04T08:00:00Z",
+  "updated_at": "2026-07-04T08:00:00Z"
+}</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method patch">PATCH</span>
+          <code class="endpoint-path">/api/v1/events/{id}</code>
+          <span class="endpoint-desc">更新行程（欄位皆為可選）</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Request body</div>
+            <pre>{
+  "title": "更新後的標題",
+  "start_at": "2026-07-07T14:00:00Z",
+  "end_at": "2026-07-07T15:00:00Z"
+}</pre>
+          </div>
+          <div class="code-block">
+            <div class="code-label">Response 200</div>
+            <pre>更新後的 event 物件</pre>
+          </div>
+        </div>
+      </details>
+
+      <details class="endpoint">
+        <summary class="endpoint-head">
+          <span class="method delete">DELETE</span>
+          <code class="endpoint-path">/api/v1/events/{id}</code>
+          <span class="endpoint-desc">刪除行程</span>
+          <span class="endpoint-chevron">&#9656;</span>
+        </summary>
+        <div class="endpoint-body">
+          <div class="code-block">
+            <div class="code-label">Response</div>
+            <pre>204 No Content</pre>
+          </div>
+        </div>
+      </details>
+
+      <h2 class="api-section-title">其他</h2>
 
       <details class="endpoint">
         <summary class="endpoint-head">

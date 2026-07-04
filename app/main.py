@@ -8,6 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 from app import models
 from app.database import Base, engine
 from app.routers.auth import router as auth_router
+from app.routers.events import router as events_router
 from app.routers.profile import router as profile_router
 from app.routers.todos import router as todos_router
 from app.routers.web import router as web_router
@@ -42,6 +43,7 @@ app.include_router(auth_router)
 app.include_router(web_router)
 app.include_router(profile_router)
 app.include_router(todos_router)
+app.include_router(events_router)
 
 
 @app.get("/healthz")

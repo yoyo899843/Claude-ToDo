@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar — Claude Todo{% endblock %}
+
+{% block content %}
+  <div class="shell">
+    <div class="cal-page">
+
+      <div class="card cal-wrap">
+        <div class="cal-header">
+          <button class="ghost cal-nav" id="prev-btn">&#8249;</button>
+          <h2 class="cal-month-label" id="month-label"></h2>
+          <button class="ghost cal-nav" id="next-btn">&#8250;</button>
+        </div>
+
+        <div class="cal-grid" id="cal-grid">
+          <div class="cal-dow">Mon</div>
+          <div class="cal-dow">Tue</div>
+          <div class="cal-dow">Wed</div>
+          <div class="cal-dow">Thu</div>
+          <div class="cal-dow">Fri</div>
+          <div class="cal-dow">Sat</div>
+          <div class="cal-dow">Sun</div>
+        </div>
+
+        <div class="cal-status" id="cal-status"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="modal-backdrop" hidden>
+    <div class="modal-card" id="modal-card" role="dialog" aria-modal="true">
+      <button class="modal-close" id="modal-close" aria-label="Close">&times;</button>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block scripts %}
+  <script src="{{ request.url_for('static', path='calendar.js') }}"></script>
+{% endblock %}

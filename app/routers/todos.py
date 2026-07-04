@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Response, status
 from sqlalchemy.orm import Session
 
@@ -14,10 +16,15 @@ router = APIRouter(prefix="/api/v1/todos", tags=["todos"])
 def read_todos(
     completed: bool | None = Query(default=None),
     q: str | None = Query(default=None, max_length=200),
+    deadline_from: datetime | None = Query(default=None),
+    deadline_to: datetime | None = Query(default=None),
     db: Session = Depends(get_db),
     user: models.User = Depends(get_api_user),
 ) -> TodoListResponse:
-    todos = crud.list_todos(db, user_id=user.id, completed=completed, q=q)
+    todos = crud.list_todos(
+        db, user_id=user.id, completed=completed, q=q,
+        deadline_from=deadline_from, deadline_to=deadline_to,
+    )
     return TodoListResponse(items=todos, total=len(todos))
 
 

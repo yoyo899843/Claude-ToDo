@@ -1,11 +1,12 @@
 import secrets
+from datetime import datetime
 
 import bcrypt
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.models import APIToken, Todo, User
-from app.schemas import TodoCreate, TodoUpdate
+from app.models import APIToken, Event, Todo, User
+from app.schemas import EventCreate, EventUpdate, TodoCreate, TodoUpdate
 
 
 # ── users ─────────────────────────────────────────────────────────────────────
@@ -59,7 +60,14 @@ def delete_api_token(db: Session, user_id: int, token_id: int) -> None:
 
 # ── todos ─────────────────────────────────────────────────────────────────────
 
-def list_todos(db: Session, user_id: int, completed: bool | None = None, q: str | None = None) -> list[Todo]:
+def list_todos(
+    db: Session,
+    user_id: int,
+    completed: bool | None = None,
+    q: str | None = None,
+    deadline_from: datetime | None = None,
+    deadline_to: datetime | None = None,
+) -> list[Todo]:
     statement = (
         select(Todo)
         .where(Todo.user_id == user_id)
@@ -70,6 +78,10 @@ def list_todos(db: Session, user_id: int, completed: bool | None = None, q: str 
     if q:
         pattern = f"%{q}%"
         statement = statement.where(Todo.title.ilike(pattern) | Todo.description.ilike(pattern))
+    if deadline_from is not None:
+        statement = statement.where(Todo.deadline >= deadline_from)
+    if deadline_to is not None:
+        statement = statement.where(Todo.deadline <= deadline_to)
     return list(db.scalars(statement).all())
 
 
@@ -109,3 +121,44 @@ def toggle_todo(db: Session, todo: Todo) -> Todo:
     db.commit()
     db.refresh(todo)
     return todo
+
+
+# ── events ────────────────────────────────────────────────────────────────────
+
+def list_events(
+    db: Session,
+    user_id: int,
+    from_dt: datetime | None = None,
+    to_dt: datetime | None = None,
+) -> list[Event]:
+    statement = select(Event).where(Event.user_id == user_id).order_by(Event.start_at.asc())
+    if from_dt is not None:
+        statement = statement.where(Event.start_at >= from_dt)
+    if to_dt is not None:
+        statement = statement.where(Event.start_at <= to_dt)
+    return list(db.scalars(statement).all())
+
+
+def get_event(db: Session, event_id: int) -> Event | None:
+    return db.get(Event, event_id)
+
+
+def create_event(db: Session, user_id: int, event_in: EventCreate) -> Event:
+    event = Event(user_id=user_id, **event_in.model_dump())
+    db.add(event)
+    db.commit()
+    db.refresh(event)
+    return event
+
+
+def update_event(db: Session, event: Event, event_in: EventUpdate) -> Event:
+    for field, value in event_in.model_dump(exclude_unset=True).items():
+        setattr(event, field, value)
+    db.commit()
+    db.refresh(event)
+    return event
+
+
+def delete_event(db: Session, event: Event) -> None:
+    db.delete(event)
+    db.commit()

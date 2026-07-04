@@ -33,6 +33,17 @@ def api_docs(
     return templates.TemplateResponse(request, "api.html", {"active_page": "api", "user": user})
 
 
+@router.get("/calendar", response_class=HTMLResponse)
+def calendar_page(
+    request: Request,
+    db: Session = Depends(get_db),
+    user: models.User | None = Depends(get_current_user_web),
+) -> HTMLResponse:
+    if not user:
+        return RedirectResponse("/login", status_code=303)
+    return templates.TemplateResponse(request, "calendar.html", {"active_page": "calendar", "user": user})
+
+
 @router.get("/claude", response_class=HTMLResponse)
 def claude_guide(
     request: Request,

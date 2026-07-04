@@ -34,6 +34,37 @@ class TodoListResponse(BaseModel):
     total: int
 
 
+class EventBase(BaseModel):
+    title: str = Field(min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=5000)
+    start_at: datetime
+    end_at: datetime | None = None
+
+
+class EventCreate(EventBase):
+    pass
+
+
+class EventUpdate(BaseModel):
+    title: str | None = Field(default=None, min_length=1, max_length=200)
+    description: str | None = Field(default=None, max_length=5000)
+    start_at: datetime | None = None
+    end_at: datetime | None = None
+
+
+class EventRead(EventBase):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    created_at: datetime
+    updated_at: datetime
+
+
+class EventListResponse(BaseModel):
+    items: list[EventRead]
+    total: int
+
+
 class TokenRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

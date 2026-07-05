@@ -1,3 +1,4 @@
+import time
 from pathlib import Path
 
 from fastapi import APIRouter, Depends, Request
@@ -10,6 +11,7 @@ from app.database import get_db
 from app.deps import get_current_user_web
 
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parents[1] / "templates"))
+templates.env.globals["static_v"] = str(int(time.time()))
 router = APIRouter(tags=["web"])
 
 

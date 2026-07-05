@@ -1231,14 +1231,17 @@ button:hover {
 .cal-cell {
   background: var(--panel-strong);
   min-height: 96px;
+  min-width: 0;
   padding: 8px;
   display: flex;
   flex-direction: column;
   gap: 4px;
+  overflow: hidden;
 }
 
 .cal-cell-empty {
   background: rgba(16, 24, 39, 0.015);
+  min-width: 0;
 }
 
 .cal-today .cal-date {

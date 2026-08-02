@@ -18,14 +18,25 @@ def read_todos(
     q: str | None = Query(default=None, max_length=200),
     deadline_from: datetime | None = Query(default=None),
     deadline_to: datetime | None = Query(default=None),
+    category: str | None = Query(default=None, max_length=100),
     db: Session = Depends(get_db),
     user: models.User = Depends(get_api_user),
 ) -> TodoListResponse:
     todos = crud.list_todos(
         db, user_id=user.id, completed=completed, q=q,
         deadline_from=deadline_from, deadline_to=deadline_to,
+        category=category,
     )
     return TodoListResponse(items=todos, total=len(todos))
+
+
+# Must be before /{todo_id} so the static segment matches first
+@router.get("/categories", response_model=list[str])
+def read_categories(
+    db: Session = Depends(get_db),
+    user: models.User = Depends(get_api_user),
+) -> list[str]:
+    return crud.list_categories(db, user.id)
 
 
 @router.post("", response_model=TodoRead, status_code=status.HTTP_201_CREATED)

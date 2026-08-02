@@ -67,6 +67,7 @@ def list_todos(
     q: str | None = None,
     deadline_from: datetime | None = None,
     deadline_to: datetime | None = None,
+    category: str | None = None,
 ) -> list[Todo]:
     statement = (
         select(Todo)
@@ -82,7 +83,19 @@ def list_todos(
         statement = statement.where(Todo.deadline >= deadline_from)
     if deadline_to is not None:
         statement = statement.where(Todo.deadline <= deadline_to)
+    if category is not None:
+        statement = statement.where(Todo.category == category)
     return list(db.scalars(statement).all())
+
+
+def list_categories(db: Session, user_id: int) -> list[str]:
+    rows = db.execute(
+        select(Todo.category)
+        .where(Todo.user_id == user_id, Todo.category.is_not(None))
+        .distinct()
+        .order_by(Todo.category)
+    )
+    return [r[0] for r in rows]
 
 
 def get_todo(db: Session, todo_id: int) -> Todo | None:

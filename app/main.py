@@ -5,6 +5,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
+from sqlalchemy import text
+
 from app import models
 from app.database import Base, engine
 from app.routers.auth import router as auth_router
@@ -37,6 +39,10 @@ app.mount("/static", StaticFiles(directory=base_dir / "static"), name="static")
 @app.on_event("startup")
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
+    with engine.connect() as conn:
+        conn.execute(text("ALTER TABLE todos ADD COLUMN IF NOT EXISTS category VARCHAR(100)"))
+        conn.execute(text("CREATE INDEX IF NOT EXISTS ix_todos_category ON todos (category)"))
+        conn.commit()
 
 
 app.include_router(auth_router)

@@ -589,6 +589,33 @@ button:hover {
   flex-shrink: 0;
 }
 
+.cat-badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.cat-filter-btn {
+  width: auto;
+  font-size: 0.78rem;
+  padding: 4px 12px;
+  border-radius: 999px;
+}
+
+.cat-filter-btn.active {
+  border-width: 1.5px;
+}
+
 /* modal */
 
 .modal-backdrop {

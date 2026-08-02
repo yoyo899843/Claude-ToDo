@@ -7,6 +7,7 @@ class TodoBase(BaseModel):
     title: str = Field(min_length=1, max_length=200)
     description: str | None = Field(default=None, max_length=5000)
     deadline: datetime | None = None
+    category: str | None = Field(default=None, max_length=100)
 
 
 class TodoCreate(TodoBase):
@@ -18,6 +19,7 @@ class TodoUpdate(BaseModel):
     description: str | None = Field(default=None, max_length=5000)
     completed: bool | None = None
     deadline: datetime | None = None
+    category: str | None = Field(default=None, max_length=100)
 
 
 class TodoRead(TodoBase):

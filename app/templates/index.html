@@ -14,6 +14,9 @@
           <textarea id="description" name="description" placeholder="Optional details"></textarea>
           <label for="deadline">Deadline</label>
           <input id="deadline" name="deadline" type="datetime-local" step="600" />
+          <label for="category">Category</label>
+          <input id="category" name="category" list="category-list" maxlength="100" placeholder="Work, Personal…" autocomplete="off" />
+          <datalist id="category-list"></datalist>
           <button class="primary" type="submit">Create todo</button>
         </form>
         <div class="status" id="form-status"></div>
@@ -25,6 +28,7 @@
           <button class="ghost" type="button" data-filter="active">Active</button>
           <button class="ghost" type="button" data-filter="done">Completed</button>
         </div>
+        <div class="category-filter" id="category-filter"></div>
         <h2 class="section-title">Todo list</h2>
         <div class="todo-list" id="todo-list"></div>
         <div class="status" id="list-status"></div>
